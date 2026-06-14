@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <title>ระบบบริหารงบประมาณ โรงเรียนมหาชัยพิทยาคาร</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div id="loading" class="hidden">
+    <div class="loader"></div>
+    <div id="text_load">loading</div>
+  </div>
+
+  <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="fa-solid fa-lock me-2"></i> เข้าสู่ระบบ</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="loginForm">
+            <div class="mb-3">
+              <label class="form-label">ชื่อผู้ใช้</label>
+              <input type="text" id="username" class="form-control" placeholder="ชื่อผู้ใช้" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">รหัสผ่าน</label>
+              <input type="password" id="password" class="form-control" placeholder="รหัสผ่าน" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-right-to-bracket me-1"></i> เข้าสู่ระบบ</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="projectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="labelModalProjectModal"><i class="fa-solid fa-diagram-project me-2"></i> จัดการโครงการ</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="myFormAddProject">
+            <input type="hidden" id="projectMode"> 
+            <input type="hidden" id="projectId"> 
+            <div class="mb-3">
+              <label class="form-label">รหัสโครงการ</label>
+              <input type="text" class="form-control" id="projectCode" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">ชื่อโครงการ</label>
+              <input type="text" class="form-control" id="projectName" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">งบประมาณ (บาท)</label>
+              <input type="number" class="form-control" id="projectBudget" min="0" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">ผู้รับผิดชอบ (เลือกได้หลายคน)</label>
+              <select id="projectOwner" placeholder="เลือกผู้รับผิดชอบ..." autocomplete="off" multiple></select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fa-solid fa-xmark me-1"></i> ยกเลิก</button>
+          <button type="button" class="btn btn-success" onclick="saveProject()"><i class="fa-solid fa-floppy-disk me-1"></i> บันทึก</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalUser" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <form id="formUser" class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="modalUserLabel"><i class="fa-solid fa-user-pen me-2"></i> จัดการผู้ใช้งาน</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="userId" />
+          <div class="mb-3"><label class="form-label">Username</label><input type="text" id="usernameUser" class="form-control" required /></div>
+          <div class="mb-3"><label class="form-label">Password</label><input type="password" id="passwordUser" class="form-control" required /></div>
+          <div class="mb-3"><label class="form-label">Full Name</label><input type="text" id="fullName" class="form-control" required /></div>
+          <div class="mb-3"><label class="form-label">Role</label>
+            <select id="roleUser" class="form-select"><option value="Viewer">Viewer</option><option value="Staff">Staff</option><option value="Admin">Admin</option></select>
+          </div>
+          <div class="mb-3"><label class="form-label">Status</label>
+            <select id="status" class="form-select"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fa-solid fa-xmark me-1"></i> ปิด</button>
+          <button type="submit" class="btn btn-success"><i class="fa-solid fa-floppy-disk me-1"></i> บันทึก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalUploadFiles" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="fa-solid fa-paperclip me-2"></i> จัดการไฟล์แนบ</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body upload-modal-body" data-mode="read">
+          <input type="hidden" id="uploadTxId" />
+          <input type="file" id="fileUploader" multiple style="display: none;" />
+          <div class="alert alert-secondary p-3">
+            <div class="row">
+              <div class="col-md-6"><strong>ID ธุรกรรม:</strong> <span id="uploadTxIdDisplay">-</span></div>
+              <div class="col-md-6"><strong>โครงการ:</strong> <span id="uploadTxProjectName">-</span></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="text-primary"><i class="fa-solid fa-receipt me-1"></i> 1. ไฟล์ใบเสร็จ / ใบแจ้งหนี้</h6>
+              <div class="dropzone" id="dropzone-receipts" data-file-type="receipts">
+                <i class="fa-solid fa-cloud-arrow-up fa-2x text-muted"></i>
+                <p class="mb-0">ลากไฟล์มาวาง หรือ คลิกที่นี่</p>
+                <small>(.jpg, .png, .pdf | สูงสุด 10MB)</small>
+              </div>
+              <div class="preview-container" id="preview-receipts"></div>
+            </div>
+            <div class="col-md-6">
+              <h6 class="text-success"><i class="fa-solid fa-file-lines me-1"></i> 2. ไฟล์รายงาน</h6>
+              <div class="dropzone" id="dropzone-reports" data-file-type="reports">
+                <i class="fa-solid fa-cloud-arrow-up fa-2x text-muted"></i>
+                <p class="mb-0">ลากไฟล์มาวาง หรือ คลิกที่นี่</p>
+                <small>(.jpg, .png, .pdf | สูงสุด 10MB)</small>
+              </div>
+              <div class="preview-container" id="preview-reports"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" id="upload-footer-readonly">
+          <button type="button" class="btn btn-primary" id="btnUploadEdit"><i class="fa-solid fa-pen-to-square me-1"></i> เพิ่ม / แก้ไข</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fa-solid fa-xmark me-1"></i> ปิด</button>
+        </div>
+        <div class="modal-footer d-none" id="upload-footer-edit">
+          <button type="button" class="btn btn-success" id="btnUploadSave"><i class="fa-solid fa-save me-1"></i> บันทึกการเปลี่ยนแปลง</button>
+          <button type="button" class="btn btn-warning" id="btnUploadCancel"><i class="fa-solid fa-times me-1"></i> ยกเลิก</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="#">
+        <i class="fa-solid fa-sack-dollar me-2" style="color: var(--primary-color);"></i>
+        <span class="fw-bold" style="color: var(--primary-color);">ระบบบริหารงบประมาณ</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto" id="navLinks"></ul>
+        <div class="d-flex align-items-center">
+          <span id="userInfo" class="navbar-text me-2"></span>
+          <button id="logoutBtn" class="btn btn-danger btn-sm" style="display: none;"><i class="fa-solid fa-right-from-bracket me-1"></i> ล็อกเอาท์</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section id="admin" class="section mb-3">
+      <div class="container">
+        <h2><i class="fa-solid fa-sack-dollar text-primary"></i> ระบบบริหารงบประมาณ</h2>
+
+        <div id="admin-dashboard-panel" class="d-none mt-4 mb-5">
+          <div class="d-flex align-items-center mb-4">
+            <h5 class="text-secondary fw-bold mb-0"><i class="fa-solid fa-chart-pie me-2"></i> ภาพรวมงบประมาณ (Real-time)</h5>
+          </div>
+          <div class="row g-4 align-items-stretch">
+            <div class="col-lg-8">
+              <div class="row g-4 h-100">
+                <div class="col-md-6">
+                  <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                    <div class="card-body position-relative d-flex align-items-center">
+                      <div class="position-absolute top-0 start-0 bottom-0 bg-primary" style="width: 6px;"></div>
+                      <div class="ps-3 w-100">
+                        <div class="text-muted fw-bold small text-uppercase">งบประมาณอนุมัติรวม</div>
+                        <div class="fs-2 fw-bold text-primary mt-2 mb-1" id="dash-total-budget">-</div>
+                        <div class="text-muted small"><i class="fa-solid fa-sack-dollar me-2"></i>Total Budget</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                    <div class="card-body position-relative d-flex align-items-center">
+                      <div class="position-absolute top-0 start-0 bottom-0 bg-danger" style="width: 6px;"></div>
+                      <div class="ps-3 w-100">
+                        <div class="text-muted fw-bold small text-uppercase">เบิกจ่ายจริงสะสม</div>
+                        <div class="fs-2 fw-bold text-danger mt-2 mb-1" id="dash-total-used">-</div>
+                        <div class="text-muted small"><i class="fa-solid fa-fire me-2"></i>Actual Used</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                    <div class="card-body position-relative d-flex align-items-center">
+                      <div class="position-absolute top-0 start-0 bottom-0 bg-success" style="width: 6px;"></div>
+                      <div class="ps-3 w-100">
+                        <div class="text-muted fw-bold small text-uppercase">คงเหลือสุทธิ</div>
+                        <div class="fs-2 fw-bold text-success mt-2 mb-1" id="dash-total-balance">-</div>
+                        <div class="text-muted small"><i class="fa-solid fa-wallet me-2"></i>Remaining</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                    <div class="card-body position-relative d-flex align-items-center">
+                      <div class="position-absolute top-0 start-0 bottom-0 bg-warning" style="width: 6px;"></div>
+                      <div class="ps-3 w-100">
+                        <div class="text-muted fw-bold small text-uppercase">% การเบิกจ่าย</div>
+                        <div class="fs-2 fw-bold text-warning mt-2 mb-1" id="dash-utilization">-</div>
+                        <div class="progress mt-2 mb-2" style="height: 6px; background-color: #f0f0f0;">
+                          <div id="dash-progress-bar" class="progress-bar bg-warning" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <div class="text-muted small"><i class="fa-solid fa-percent me-2"></i>Percentage</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4">
+              <div class="card h-100 border-0 shadow-sm rounded-3 p-2 bg-light-subtle">
+                <div class="flex-grow-1 w-100 d-flex justify-content-center align-items-center" style="min-height: 250px;">
+                  <canvas id="budgetChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ul class="nav nav-tabs mt-4" id="adminTabs">
+          <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-transactions"><i class="fa-solid fa-file-invoice-dollar me-1"></i> บันทึกข้อมูล</a></li>
+          <li class="nav-item d-none" id="nav-project-tab"><a class="nav-link" data-bs-toggle="tab" href="#tab-projects"><i class="fa-solid fa-diagram-project me-1"></i> จัดการโครงการ</a></li>
+          <li class="nav-item d-none" id="nav-user-tab"><a class="nav-link" data-bs-toggle="tab" href="#tab-users"><i class="fa-solid fa-users-gear me-1"></i> จัดการผู้ใช้งาน</a></li>
+          <li class="nav-item d-none" id="nav-setting-tab"><a class="nav-link" data-bs-toggle="tab" href="#tab-settings"><i class="fa-solid fa-cogs me-1"></i> ตั้งค่าระบบ</a></li>
+        </ul>
+
+        <div class="tab-content mt-3">
+          <div class="tab-pane fade show active" id="tab-transactions">
+            <div class="card shadow-sm d-none" id="form-transaction">
+              <div class="card-header bg-light-pastel-primary"><i class="fa-solid fa-wallet me-2"></i><strong>ฟอร์มเบิกงบประมาณ</strong></div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label for="project" class="form-label"><i class="fa-solid fa-diagram-project me-1 text-primary"></i> เลือกโครงการ</label>
+                  <select id="project" class="form-select" onchange="onProjectChange()"><option value="">-- กรุณาเลือก --</option></select>
+                </div>
+                <div id="projectInfo" class="alert alert-secondary d-none p-3">
+                  <p class="mb-1"><strong>ชื่อโครงการ:</strong> <span id="infoName">-</span></p>
+                  <p class="mb-1"><strong>งบประมาณทั้งหมด:</strong> <span id="infoBudget">-</span></p>
+                  <p class="mb-0"><strong>ผู้รับผิดชอบ:</strong> <span id="infoOwner">-</span></p>
+                </div>
+                <div class="row mb-3 g-3">
+                  <div class="col-md-6">
+                    <div class="alert alert-info p-3 m-0 d-flex align-items-center h-100">
+                      <i class="fa-solid fa-money-bill-wave fa-lg me-2 text-primary"></i>
+                      <div><strong>ยอดที่สามารถเบิกได้:</strong><span id="balanceAmount" class="ms-1 fs-5">-</span></div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="alert alert-warning p-3 m-0 d-flex align-items-center h-100">
+                      <i class="fa-solid fa-hashtag fa-lg me-2 text-warning-emphasis"></i>
+                      <div><strong>จำนวนครั้งที่เบิกล่าสุด:</strong><span id="sequenceCount" class="ms-1 fs-5">-</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="mb-3 mt-3">
+                  <label for="amount" class="form-label" id="labelAmount"><i class="fa-solid fa-money-bill-wave me-1 text-success"></i> จำนวนเงินที่ต้องการเบิก</label>
+                  <input type="number" id="amount" class="form-control" min="0" placeholder="ระบุจำนวนเงินที่ต้องการเบิก">
+                </div>
+                <div class="text-end">
+                  <button onclick="submitTransaction()" class="btn btn-primary" id="btnSubmitTransaction"><i class="fa-solid fa-paper-plane me-1"></i> บันทึกการเบิกเงิน</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card mt-4">
+              <div class="card-header bg-light-pastel-info"><i class="fa-solid fa-table-list me-2"></i> ตารางรายการเบิกงบ</div>
+              <div class="card-body">
+                <div class="table-responsive"><table class="table table-hover" id="tableTransactions" style="width: 100%;"><thead></thead></table></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-pane fade" id="tab-projects">
+            <div class="card shadow-sm">
+              <div class="card-header bg-light-pastel-secondary d-flex flex-wrap align-items-center">
+                <h5 class="pt-1 mb-0"><i class="fa-solid fa-diagram-project me-1"></i> จัดการโครงการ</h5>
+                <div class="ms-auto d-flex flex-wrap">
+                  <button type="button" class="btn btn-outline-primary btn-sm me-2 d-none" id="btn-template-project"><i class="fa-solid fa-file-lines me-1"></i> Template</button>
+                  <button type="button" class="btn btn-success btn-sm me-2 d-none" id="btn-export-project"><i class="fa-solid fa-file-excel me-1"></i> ส่งออก</button>
+                  <button type="button" class="btn btn-info btn-sm me-2 d-none" id="btn-import-project"><i class="fa-solid fa-file-import me-1"></i> นำเข้า</button>
+                  <button type="button" class="btn btn-primary btn-sm d-none" id="btn-add-project" onclick="openProjectModal('add')"><i class="fa-solid fa-plus me-1"></i> เพิ่มโครงการ</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <input type="file" id="projectFileUploader" accept=".xlsx" style="display: none;">
+                <div class="table-responsive"><table class="table table-hover" id="tableProjects" style="width: 100%;"><thead></thead></table></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-pane fade" id="tab-users">
+            <div class="card shadow-sm">
+              <div class="card-header bg-light-pastel-secondary d-flex align-items-center">
+                <h5 class="pt-1 mb-0"><i class="fa-solid fa-users-gear me-1"></i> จัดการผู้ใช้งาน</h5>
+                <button type="button" class="btn btn-primary ms-auto d-none" id="btn-add-user" onclick="openUserModal()"><i class="fa-solid fa-user-plus me-1"></i> เพิ่มผู้ใช้งาน</button>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive"><table class="table table-hover" id="tableUsers" style="width: 100%;"><thead></thead></table></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-pane fade" id="tab-settings">
+            <div class="card shadow-sm">
+              <div class="card-header bg-light-pastel-secondary"><h5 class="pt-1 mb-0"><i class="fa-solid fa-cogs me-1"></i> ตั้งค่าระบบ</h5></div>
+              <div class="card-body">
+                <form id="formSettings">
+                  <div class="alert alert-info"><i class="fa-solid fa-circle-info me-1"></i> การตั้งค่าเหล่านี้มีผลต่อการทำงานหลักของระบบ โปรดแก้ไขด้วยความระมัดระวัง</div>
+                  <div class="mb-3">
+                    <label for="driveFolderId" class="form-label"><i class="fa-brands fa-google-drive me-1 text-success"></i> <strong>Google Drive Folder ID</strong> (สำหรับเก็บไฟล์แนบ)</label>
+                    <input type="text" class="form-control" id="driveFolderId" placeholder="กรอก Folder ID จาก Google Drive">
+                  </div>
+                  <div class="text-end"><button type="submit" class="btn btn-primary" id="btnSaveSettings"><i class="fa-solid fa-save me-1"></i> บันทึกการตั้งค่า</button></div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="public" class="section mb-3">
+      <div class="container">
+        <h2><i class="fa-solid fa-chart-pie text-primary"></i> ภาพรวมสถานะโครงการ</h2>
+        <div class="card mt-4">
+          <div class="card-body">
+            <div class="row mb-3 g-3">
+              <div class="col-md-3 col-6"><div class="alert alert-primary text-center h-100 mb-0"><h6 class="mb-1">โครงการทั้งหมด</h6><strong id="totalProjects" class="fs-5">-</strong></div></div>
+              <div class="col-md-3 col-6"><div class="alert alert-success text-center h-100 mb-0"><h6 class="mb-1">ดำเนินการเสร็จสิ้น</h6><strong id="totalCompleted" class="fs-5">-</strong></div></div>
+              <div class="col-md-3 col-6"><div class="alert alert-warning text-center h-100 mb-0"><h6 class="mb-1">กำลังดำเนินการ</h6><strong id="totalInProgress" class="fs-5">-</strong></div></div>
+              <div class="col-md-3 col-6"><div class="alert alert-secondary text-center h-100 mb-0"><h6 class="mb-1">ยังไม่ดำเนินการ</h6><strong id="totalNotStarted" class="fs-5">-</strong></div></div>
+            </div>
+
+            <div class="row g-3 mt-4">
+              <div class="col-md-6">
+                <label for="filterProject" class="form-label"><i class="fa-solid fa-filter me-1"></i> กรองตามโครงการ</label>
+                <select id="filterProject" class="form-select" onchange="filterSummaryTable()"><option value="">-- แสดงทั้งหมด --</option></select>
+              </div>
+              <div class="col-md-6">
+                <label for="filterStatus" class="form-label"><i class="fa-solid fa-filter me-1"></i> กรองตามสถานะ</label>
+                <select id="filterStatus" class="form-select" onchange="filterSummaryTable()">
+                  <option value="">-- แสดงทั้งหมด --</option><option value="เสร็จสิ้น">ดำเนินการเสร็จสิ้น</option><option value="กำลังดำเนินการ">กำลังดำเนินการ</option><option value="ยังไม่ดำเนินการ">ยังไม่ดำเนินการ</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="card mt-4">
+              <div class="card-header bg-light-pastel-secondary d-flex justify-content-between align-items-center">
+                <div><i class="fa-solid fa-table-list me-2"></i> สรุปการดำเนินการ</div>
+                <button class="btn btn-sm btn-outline-primary" style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .5rem;" onclick="loadProjectSummary()">
+                  <i class="fa-solid fa-rotate-right me-1"></i> รีเฟรช
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table id="summaryTable" class="table table-hover" style="width:100%;">
+                    <thead><tr><th>ที่</th><th>รหัส / ชื่อโครงการ</th><th>สถานะ</th><th>เบิกแล้ว (ครั้ง)</th><th>รายงาน (ฉบับ)</th></tr></thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="main-footer py-3 bg-light text-muted border-top">
+    <div class="container d-flex flex-column align-items-center">
+      <div class="footer-left mb-1">
+        <strong>Copyright © 2024 พัฒนาโดย: <a href="https://www.facebook.com/Kntz.12" class="footer-link" target="_blank">นายก้องนที อุ่นเจริญ ครู</a></strong>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+  <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+  <script src="script.js"></script>
+</body>
+</html>
