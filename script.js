@@ -2,7 +2,7 @@
 // การตั้งค่า API (เชื่อมกับ Google Apps Script)
 // ==============================
 // ⚠️ เปลี่ยน URL ด้านล่างให้เป็น URL Web App ของคุณเองที่ได้จากการ Deploy ใน Google Apps Script
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz_XXXXXXXXX/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx5R3HaXBNjOLzQb-Wdo69gNJnQYh0eux5ONsJKSbCHlIuafdbRijGxkjSgQx4EKXYezw/exec";
 
 // 🚀 ฟังก์ชันครอบจักรวาล ทำหน้าที่แทน google.script.run
 async function callGoogleScript(action, params = {}) {
